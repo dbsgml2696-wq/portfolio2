@@ -139,7 +139,7 @@ const Portfolio = () => {
         {/* Header */}
         <header className={`header ${scrollY > 50 ? 'scrolled' : ''}`}>
           <nav className="nav-bar">
-            <div className="logo">KIM YUNHEE</div>
+            <div className="logo">KIM YOONHEE</div>
 
             <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
               {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -463,7 +463,7 @@ const Portfolio = () => {
           <div id="contact" className="anchor-offset" />
           <div className="section-label">06 / CONTACT</div>
           <h2>함께 서비스를 만들어보고 싶습니다.</h2>
-          <p className="contact-name">KIM YUNHEE</p>
+          <p className="contact-name">KIM YOONHEE</p>
           <p className="contact-role">Frontend Developer</p>
           <div className="contact-buttons">
             <a className="btn-primary" href="mailto:hello@example.com">
@@ -478,7 +478,7 @@ const Portfolio = () => {
         {/* Footer */}
         <footer>
           <div className="footer-content">
-            <div className="footer-logo">KIM YUNHEE</div>
+            <div className="footer-logo">KIM YOONHEE</div>
             <div>Frontend Developer · 2026</div>
             <div>© 2026 Yoonhee Kim. Designed &amp; Developed with curiosity.</div>
           </div>
@@ -496,7 +496,7 @@ const Portfolio = () => {
       <div className="portfolio-container">
         <header className="detail-header">
           <nav className="detail-nav">
-            <div className="logo">KIM YUNHEE</div>
+            <div className="logo">KIM Y00NHEE</div>
             <button className="back-btn" onClick={() => setCurrentPage('home')}>
               ← BACK TO HOME
             </button>
@@ -562,7 +562,7 @@ const Portfolio = () => {
 
         <footer>
           <div className="footer-content">
-            <div className="footer-logo">KIM YUNHEE</div>
+            <div className="footer-logo">KIM Y00NHEE</div>
             <div>Frontend Developer · 2026</div>
             <div>© 2026 Yoonhee Kim. Designed &amp; Developed with curiosity.</div>
           </div>
