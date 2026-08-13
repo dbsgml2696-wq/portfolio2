@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
 import './App.css';
 
 const BrowserFrame = ({ image, title, size = 'large' }) => (
@@ -17,11 +17,111 @@ const BrowserFrame = ({ image, title, size = 'large' }) => (
   </div>
 );
 
+const ImageCarousel = ({ images, altPrefix, onImageClick }) => {
+  const scrollRef = useRef(null);
+  const isDragging = useRef(false);
+  const hasDragged = useRef(false);
+  const dragStart = useRef({ x: 0, scrollLeft: 0 });
+
+  const handleWheel = (e) => {
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    e.preventDefault();
+    scrollRef.current.scrollLeft += e.deltaY;
+  };
+
+  const handleMouseDown = (e) => {
+    isDragging.current = true;
+    hasDragged.current = false;
+    dragStart.current = { x: e.pageX, scrollLeft: scrollRef.current.scrollLeft };
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging.current) return;
+    const dx = e.pageX - dragStart.current.x;
+    if (Math.abs(dx) > 5) hasDragged.current = true;
+    scrollRef.current.scrollLeft = dragStart.current.scrollLeft - dx;
+  };
+
+  const stopDragging = () => {
+    isDragging.current = false;
+  };
+
+  const scrollByAmount = (dir) => {
+    scrollRef.current.scrollBy({ left: dir * 320, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="carousel-wrapper">
+      <button
+        type="button"
+        className="carousel-arrow carousel-arrow-left"
+        onClick={() => scrollByAmount(-1)}
+        aria-label="이전 이미지"
+      >
+        <ChevronLeft size={20} />
+      </button>
+
+      <div
+        className="detail-image-list"
+        ref={scrollRef}
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={stopDragging}
+        onMouseLeave={stopDragging}
+      >
+        {images.map((image, imageIndex) => (
+          <div
+            key={imageIndex}
+            className="detail-image-item"
+            onClick={() => {
+              if (!hasDragged.current) onImageClick(imageIndex);
+            }}
+          >
+            <img src={image} alt={`${altPrefix} ${imageIndex + 1}`} draggable={false} />
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="carousel-arrow carousel-arrow-right"
+        onClick={() => scrollByAmount(1)}
+        aria-label="다음 이미지"
+      >
+        <ChevronRight size={20} />
+      </button>
+    </div>
+  );
+};
+
 const Portfolio = () => {
   const [currentPage, setCurrentPage] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [visibleSections, setVisibleSections] = useState({});
+  const [lightbox, setLightbox] = useState(null); // { images, index, sectionTitle }
+
+  const closeLightbox = () => setLightbox(null);
+  const showPrev = () =>
+    setLightbox((prev) =>
+      prev ? { ...prev, index: (prev.index - 1 + prev.images.length) % prev.images.length } : prev
+    );
+  const showNext = () =>
+    setLightbox((prev) =>
+      prev ? { ...prev, index: (prev.index + 1) % prev.images.length } : prev
+    );
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') showPrev();
+      if (e.key === 'ArrowRight') showNext();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightbox]);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -77,8 +177,79 @@ const Portfolio = () => {
         '외국인 학습자가 흥미를 잃지 않고 꾸준히 한국어를 학습할 수 있는 콘텐츠와 흐름이 부족했습니다.',
       keyPoint:
         '사용자가 학습 콘텐츠를 쉽게 탐색하고 게임형 요소를 통해 자연스럽게 학습을 이어갈 수 있도록 UI와 흐름을 설계했습니다.',
-      image: '/images/kkiyeok.png',
-    },
+      image: '/images/kkiyeok/hero.png',
+      detailSections: [
+  {
+    title: 'MAIN',
+    description: '서비스의 주요 콘텐츠를 한눈에 확인하고 원하는 학습 영역으로 이동할 수 있도록 구성했습니다.',
+    images: [
+      '/images/kkiyeok/category_main.png',
+      '/images/kkiyeok/practice_main.png',
+    ],
+  },
+
+  {
+    title: 'LEARNING',
+    description: '학습 콘텐츠 탐색부터 문제 풀이, 모의고사와 결과 확인까지 하나의 학습 흐름으로 구성했습니다.',
+    images: [
+      '/images/kkiyeok/category_list.png',
+      '/images/kkiyeok/category_list_lock.png',
+      '/images/kkiyeok/content_quiz.png',
+      '/images/kkiyeok/content_quiz_lock.png',
+      '/images/kkiyeok/quiz_list.png',
+      '/images/kkiyeok/quiz_view.png',
+      '/images/kkiyeok/mock_list.png',
+      '/images/kkiyeok/mock_view.png',
+      '/images/kkiyeok/mock_result.png',
+      '/images/kkiyeok/wrong_notes.png',
+    ],
+  },
+
+  {
+    title: 'COMMUNITY',
+    description: '공지사항, FAQ, Q&A 등 학습자에게 필요한 정보를 쉽게 찾을 수 있도록 구성했습니다.',
+    images: [
+      '/images/kkiyeok/community.png',
+      '/images/kkiyeok/qna_main.png',
+      '/images/kkiyeok/faq.png',
+      '/images/kkiyeok/notice_list.png',
+      '/images/kkiyeok/notice_view.png',
+    ],
+  },
+
+  {
+    title: 'USER EXPERIENCE',
+    description: '마이페이지와 결제 과정을 사용자가 이해하기 쉬운 단계로 구성했습니다.',
+    images: [
+      '/images/kkiyeok/mypage.png',
+      '/images/kkiyeok/orderpay.png',
+      '/images/kkiyeok/orderpay_com.png',
+    ],
+  },
+
+  {
+    title: 'INTERACTION',
+    description: '사용자의 행동에 반응하는 인터랙션과 학습 보조 기능을 구현했습니다.',
+    images: [
+      '/images/kkiyeok/drag.png',
+      '/images/kkiyeok/game.png',
+      '/images/kkiyeok/kki.png',
+      '/images/kkiyeok/ddi.png',
+    ],
+  },
+
+  {
+    title: 'ADMIN',
+    description: '관리자가 학습 콘텐츠와 서비스 데이터를 관리할 수 있도록 관리자 화면을 구성했습니다.',
+    images: [
+      '/images/kkiyeok/admin_main.png',
+      '/images/kkiyeok/admin_dasi.png',
+    ],
+  },
+  ], // detailSections 끝
+
+}, // ⭐ 끼역띠귿 project 끝
+    
     {
       id: 2,
       number: '02',
@@ -100,7 +271,69 @@ const Portfolio = () => {
         '디지털 기기에 익숙하지 않은 시니어 사용자가 온라인 학습에 부담을 느끼고 쉽게 이탈했습니다.',
       keyPoint:
         '시니어 사용자의 특성을 고려해 복잡하지 않고 직관적인 학습 UI를 설계해 부담 없이 방문할 수 있는 공간을 만들었습니다.',
-      image: '/images/masil.png',
+      image: '/images/masil/hero.png',
+      detailSections: [
+        {
+          title: 'MAIN',
+          description: '로그인부터 홈 화면까지, 시니어 사용자가 한눈에 학습 상황을 확인할 수 있도록 구성했습니다.',
+          images: [
+            '/images/masil/main.png',
+            '/images/masil/user_main.png',
+          ],
+        },
+
+        {
+          title: 'LEARNING',
+          description: '키오스크·스마트폰·컴퓨터 등 학습 카테고리 선택부터 강의 시청, 진도율 확인까지의 흐름을 구성했습니다.',
+          images: [
+            '/images/masil/user_category_list.png',
+            '/images/masil/user_content_list.png',
+            '/images/masil/user_content_view.png',
+          ],
+        },
+
+        {
+          title: 'COMMUNITY',
+          description: '자유게시판과 FAQ, 마실봇 챗봇을 통해 학습자가 궁금한 점을 쉽게 해결할 수 있도록 구성했습니다.',
+          images: [
+            '/images/masil/user_community.png',
+            '/images/masil/user_faq.png',
+            '/images/masil/user_bot.png',
+          ],
+        },
+
+        {
+          title: 'USER EXPERIENCE',
+          description: '나의 공부방에서 수강 내역, 진도율, 출석 현황을 확인하고 결제까지 진행할 수 있도록 구성했습니다.',
+          images: [
+            '/images/masil/user_mypage.png',
+            '/images/masil/user_orderpay_list.png',
+            '/images/masil/user_content_list_mo.png',
+          ],
+        },
+
+        {
+          title: 'TEACHER',
+          description: '강사가 수강생의 학습 현황을 확인하고 퀴즈를 등록·관리할 수 있는 강사 전용 화면을 구성했습니다.',
+          images: [
+            '/images/masil/teacher_main.png',
+            '/images/masil/teacher_mypage.png',
+            '/images/masil/teacher_quiz_list.png',
+            '/images/masil/teacher_quiz_chuga.png',
+          ],
+        },
+
+        {
+          title: 'ADMIN',
+          description: '관리자가 센터 현황을 파악하고 강의 카테고리와 콘텐츠를 등록·관리할 수 있도록 구성했습니다.',
+          images: [
+            '/images/masil/admin_main.png',
+            '/images/masil/admin_dashboard.png',
+            '/images/masil/admin_category_chuga.png',
+            '/images/masil/admin_content_chuga.png',
+          ],
+        },
+      ],
     },
   ];
 
@@ -196,8 +429,8 @@ const Portfolio = () => {
               style={{ opacity: isVisible('section-hero') ? 1 : 0, transition: 'opacity 0.8s ease 0.4s' }}
             >
               <div className="hero-visual-stack">
-                <BrowserFrame image="/images/masil.png" title="마실 학습터" size="hero-back" />
-                <BrowserFrame image="/images/kkiyeok.png" title="끼역띠귿" size="hero-front" />
+                <BrowserFrame image="/images/masil/hero.png" title="마실 학습터" size="hero-back" />
+                <BrowserFrame image="/images/kkiyeok/hero.png" title="끼역띠귿" size="hero-front" />
               </div>
             </div>
           </div>
@@ -217,9 +450,9 @@ const Portfolio = () => {
           <div id="works" className="anchor-offset" />
           <div className="section-label">01 / SELECTED WORKS</div>
           <h2>
-            제가 직접 기획하고 디자인하고
+            팀으로 기획한 프로젝트에서 프론트엔드를 중심으로
             <br />
-            구현한 프로젝트입니다.
+            화면부터 API 연동까지 직접 구현했습니다.
           </h2>
 
           {projects.map((project, idx) => (
@@ -493,10 +726,11 @@ const Portfolio = () => {
     const project = projects.find((p) => p.id === projectId);
 
     return (
+      <>
       <div className="portfolio-container">
         <header className="detail-header">
           <nav className="detail-nav">
-            <div className="logo">KIM Y00NHEE</div>
+            <div className="logo">KIM YOONHEE</div>
             <button className="back-btn" onClick={() => setCurrentPage('home')}>
               ← BACK TO HOME
             </button>
@@ -530,19 +764,43 @@ const Portfolio = () => {
             <p>{project.keyPoint}</p>
           </div>
 
-          <div className="detail-section">
-            <h2>DESIGN</h2>
-            <p>메인 화면부터 로그인, 학습 콘텐츠 화면까지 사용자 흐름을 고려해 설계했습니다.</p>
-            <div className="detail-design-visual">
-              <BrowserFrame image={project.image} title={project.title} size="detail-secondary" />
-            </div>
-          </div>
+          
 
           <div className="detail-section">
             <h2>DEVELOPMENT</h2>
             <p className="detail-role-line">
               <strong>ROLE</strong> — {project.role}
             </p>
+
+            {project.detailSections?.map((section, sectionIndex) => (
+              <section key={sectionIndex} className="detail-image-section">
+
+                <div className="detail-section-header">
+                  <span className="detail-section-number">
+                    {String(sectionIndex + 1).padStart(2, '0')}
+                  </span>
+
+                  <div>
+                    <h2>{section.title}</h2>
+                    <p>{section.description}</p>
+                  </div>
+                </div>
+
+                <ImageCarousel
+                  images={section.images}
+                  altPrefix={`${project.title} ${section.title}`}
+                  onImageClick={(imageIndex) =>
+                    setLightbox({
+                      images: section.images,
+                      index: imageIndex,
+                      sectionTitle: section.title,
+                    })
+                  }
+                />
+
+              </section>
+            ))}
+
             <div className="detail-stack-list">
               {project.stackDetail.map((s, i) => (
                 <div key={i} className="detail-stack-item">
@@ -562,12 +820,53 @@ const Portfolio = () => {
 
         <footer>
           <div className="footer-content">
-            <div className="footer-logo">KIM Y00NHEE</div>
+            <div className="footer-logo">KIM YOONHEE</div>
             <div>Frontend Developer · 2026</div>
             <div>© 2026 Yoonhee Kim. Designed &amp; Developed with curiosity.</div>
           </div>
         </footer>
       </div>
+
+      {lightbox && (
+        <div className="lightbox-overlay" onClick={closeLightbox}>
+          <button className="lightbox-close" onClick={closeLightbox} aria-label="닫기">
+            <X size={26} />
+          </button>
+
+          <button
+            className="lightbox-nav lightbox-prev"
+            onClick={(e) => {
+              e.stopPropagation();
+              showPrev();
+            }}
+            aria-label="이전 이미지"
+          >
+            <ChevronLeft size={28} />
+          </button>
+
+          <img
+            src={lightbox.images[lightbox.index]}
+            alt={`${lightbox.sectionTitle} ${lightbox.index + 1}`}
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          <button
+            className="lightbox-nav lightbox-next"
+            onClick={(e) => {
+              e.stopPropagation();
+              showNext();
+            }}
+            aria-label="다음 이미지"
+          >
+            <ChevronRight size={28} />
+          </button>
+
+          <div className="lightbox-counter">
+            {lightbox.sectionTitle} · {lightbox.index + 1} / {lightbox.images.length}
+          </div>
+        </div>
+      )}
+      </>
     );
   }
 
