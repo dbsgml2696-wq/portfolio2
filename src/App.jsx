@@ -699,10 +699,10 @@ const Portfolio = () => {
           <p className="contact-name">KIM YOONHEE</p>
           <p className="contact-role">Frontend Developer</p>
           <div className="contact-buttons">
-            <a className="btn-primary" href="mailto:hello@example.com">
+            <a className="btn-primary" href="mailto:dbsgml6411@naver.com">
               EMAIL →
             </a>
-            <a className="btn-secondary" href="https://github.com/" target="_blank" rel="noreferrer">
+            <a className="btn-secondary" href="https://github.com/dbsgml2696-wq" target="_blank" rel="noreferrer">
               GITHUB →
             </a>
           </div>
